@@ -22,19 +22,21 @@ class SRopen(Node):
     i: Optional[str] = Field(default=None)
     j: Optional[str] = Field(default=None)
 
+    def _repeat_count(self, value: Optional[str], axis: str) -> int:
+        repeats = 1 if value is None else int(value)
+        if repeats < 1:
+            raise ValueError(f"SR {axis} repeat count must be at least 1")
+        return repeats
+
     @property
     def x_repeats(self) -> int:
         """Get number of repeats in X axis."""
-        repeats = 1 if self.x is None else int(self.x)
-        assert repeats > 0
-        return repeats
+        return self._repeat_count(self.x, "X")
 
     @property
     def y_repeats(self) -> int:
         """Get number of repeats in Y axis."""
-        repeats = 1 if self.y is None else int(self.y)
-        assert repeats > 0
-        return repeats
+        return self._repeat_count(self.y, "Y")
 
     @property
     def x_delta(self) -> float:

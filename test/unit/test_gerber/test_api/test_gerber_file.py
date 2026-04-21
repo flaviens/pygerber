@@ -46,3 +46,19 @@ def test_file_type_from_attributes_no_file_function() -> None:
     gerber = GerberFile.from_str("G04*")
     assert gerber.file_type == FileTypeEnum.INFER
     assert gerber._get_file_type_from_attributes() == FileTypeEnum.UNDEFINED
+
+
+def test_zero_step_repeat_count_rejected_during_compile() -> None:
+    gerber = GerberFile.from_str(
+        """%FSLAX36Y36*%
+%MOIN*%
+%ADD10C,0.010*%
+%SRX0Y1I0.0000J0.0000*%
+D10*
+X0Y0D03*
+%SR*%
+M02*"""
+    )
+
+    with pytest.raises(ValueError, match="SR X repeat count must be at least 1"):
+        gerber._get_rvmc()
