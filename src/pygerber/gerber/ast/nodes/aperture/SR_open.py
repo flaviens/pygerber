@@ -17,8 +17,13 @@ if TYPE_CHECKING:
 class SRRepeatCountError(ValueError):
     """Raised when SR repeat count is invalid."""
 
-    def __init__(self, axis: str) -> None:
-        super().__init__(f"SR {axis} repeat count must be at least 1")
+    def __init__(self, axis: str, value: Optional[str] = None) -> None:
+        message = (
+            f"SR {axis} repeat count must be an integer greater than or equal to 1"
+        )
+        if value is not None:
+            message = f"{message}, got {value!r}"
+        super().__init__(message)
 
 
 class SRopen(Node):
@@ -30,9 +35,16 @@ class SRopen(Node):
     j: Optional[str] = Field(default=None)
 
     def _repeat_count(self, value: Optional[str], axis: str) -> int:
-        repeats = 1 if value is None else int(value)
+        if value is None:
+            return 1
+
+        try:
+            repeats = int(value)
+        except ValueError as exc:
+            raise SRRepeatCountError(axis, value) from exc
+
         if repeats < 1:
-            raise SRRepeatCountError(axis)
+            raise SRRepeatCountError(axis, value)
         return repeats
 
     @property
