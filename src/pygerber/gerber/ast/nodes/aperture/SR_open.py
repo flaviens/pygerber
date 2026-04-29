@@ -14,6 +14,13 @@ if TYPE_CHECKING:
     from pygerber.gerber.ast.ast_visitor import AstVisitor
 
 
+class SRRepeatCountError(ValueError):
+    """Raised when SR repeat count is invalid."""
+
+    def __init__(self, axis: str) -> None:
+        super().__init__(f"SR {axis} repeat count must be at least 1")
+
+
 class SRopen(Node):
     """Represents SR Gerber extended command."""
 
@@ -25,7 +32,7 @@ class SRopen(Node):
     def _repeat_count(self, value: Optional[str], axis: str) -> int:
         repeats = 1 if value is None else int(value)
         if repeats < 1:
-            raise ValueError(f"SR {axis} repeat count must be at least 1")
+            raise SRRepeatCountError(axis)
         return repeats
 
     @property
@@ -40,12 +47,12 @@ class SRopen(Node):
 
     @property
     def x_delta(self) -> float:
-        """Get number of X repeats."""
+        """Get X step-and-repeat offset."""
         return 0 if self.i is None else float(self.i)
 
     @property
     def y_delta(self) -> float:
-        """Get number of Y repeats."""
+        """Get Y step-and-repeat offset."""
         return 0 if self.j is None else float(self.j)
 
     def visit(self, visitor: AstVisitor) -> SRopen:
